@@ -1,0 +1,44 @@
+{
+  "name": "@agent-memory-garden/mcp-server",
+  "version": "0.1.0",
+  "description": "MCP server for Agent Memory Garden",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist",
+    "test": "jest",
+    "lint": "eslint src --ext .ts",
+    "start": "node dist/index.js"
+  },
+  "keywords": [
+    "ai-agent",
+    "skills",
+    "mcp",
+    "model-context-protocol"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@agent-memory-garden/core": "^0.1.0",
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.5.0",
+    "jest": "^29.0.0",
+    "@types/jest": "^29.0.0",
+    "ts-jest": "^29.0.0",
+    "eslint": "^8.0.0",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
