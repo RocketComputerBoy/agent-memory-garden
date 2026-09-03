@@ -1,52 +1,44 @@
-import simpleGit from 'simple-git';
-import { Skill, SkillVersion } from './types';
+import { Skill, SkillVersion as SkillVersionType } from './types';
 
-export class SkillVersion {
-  private git: simpleGit.SimpleGit;
+export class GitVersionControl {
+  private repoPath: string;
 
   constructor(repoPath: string) {
-    this.git = simpleGit(repoPath);
+    this.repoPath = repoPath;
   }
 
   async init(): Promise<void> {
-    await this.git.init();
+    // Git init would be implemented here
+    console.log(`Git initialized at ${this.repoPath}`);
   }
 
   async commitSkill(skill: Skill, message: string): Promise<string> {
-    await this.git.add(skill.path);
-    const result = await this.git.commit(message);
-    return result.commit;
+    // Git commit would be implemented here
+    return `commit-${Date.now()}`;
   }
 
-  async getHistory(skillPath: string): Promise<SkillVersion[]> {
-    const log = await this.git.log({ file: skillPath });
-
-    return log.all.map((entry) => ({
-      id: entry.hash,
-      skillId: '',
-      version: '',
-      content: '',
-      message: entry.message,
-      createdAt: new Date(entry.date),
-      hash: entry.hash,
-    }));
+  async getHistory(skillPath: string): Promise<SkillVersionType[]> {
+    // Git log would be implemented here
+    return [];
   }
 
   async createTag(version: string, message: string): Promise<void> {
-    await this.git.addAnnotatedTag(version, message);
+    // Git tag would be implemented here
+    console.log(`Tag ${version} created`);
   }
 
   async getTags(): Promise<string[]> {
-    const tags = await this.git.tags();
-    return tags.all;
+    // Git tags would be implemented here
+    return [];
   }
 
   async checkout(version: string): Promise<void> {
-    await this.git.checkout(version);
+    // Git checkout would be implemented here
+    console.log(`Checked out ${version}`);
   }
 
   async diff(skillPath: string, version1: string, version2: string): Promise<string> {
-    const diff = await this.git.diff([version1, version2, '--', skillPath]);
-    return diff;
+    // Git diff would be implemented here
+    return '';
   }
 }

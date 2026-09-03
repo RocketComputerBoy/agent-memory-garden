@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { Command } from 'commander';
-import { SkillStore, SkillHealth } from '@agent-memory-garden/core';
+import { SkillStore, HealthChecker } from '@agent-memory-garden/core';
 import chalk from 'chalk';
 import inquirer from 'inquirer';
 import ora from 'ora';
@@ -35,6 +35,9 @@ program
         },
       ]);
 
+      const store = await SkillStore.create('./skills.db');
+      store.close();
+
       spinner.succeed(chalk.green('Skill garden initialized!'));
       console.log(chalk.cyan(`Garden "${answers.name}" created successfully.`));
     } catch (error) {
@@ -50,7 +53,7 @@ program
     const spinner = ora('Loading skills...').start();
 
     try {
-      const store = new SkillStore('./skills.db');
+      const store = await SkillStore.create('./skills.db');
       const skills = store.listSkills();
       store.close();
 
@@ -81,7 +84,7 @@ program
     const spinner = ora('Adding skill...').start();
 
     try {
-      const store = new SkillStore('./skills.db');
+      const store = await SkillStore.create('./skills.db');
 
       const skill = store.createSkill({
         name,
@@ -104,17 +107,52 @@ program
   });
 
 program
+  .command('show')
+  .description('Show details of a skill')
+  .argument('<name>', 'Skill name')
+  .action(async (name: string) => {
+    const spinner = ora('Loading skill...').start();
+
+    try {
+      const store = await SkillStore.create('./skills.db');
+      const skills = store.searchSkills(name);
+      store.close();
+
+      spinner.stop();
+
+      if (skills.length === 0) {
+        console.log(chalk.yellow(`No skill found with name "${name}".`));
+        return;
+      }
+
+      const skill = skills[0];
+      console.log(chalk.cyan('Skill Details:'));
+      console.log(chalk.white(`  Name: ${skill.name}`));
+      console.log(chalk.white(`  Version: ${skill.version}`));
+      console.log(chalk.white(`  Description: ${skill.description || 'No description'}`));
+      console.log(chalk.white(`  Path: ${skill.path}`));
+      console.log(chalk.white(`  Tags: ${skill.tags.join(', ') || 'None'}`));
+      console.log(chalk.white(`  Dependencies: ${skill.dependencies.join(', ') || 'None'}`));
+      console.log(chalk.white(`  Created: ${skill.createdAt.toISOString()}`));
+      console.log(chalk.white(`  Updated: ${skill.updatedAt.toISOString()}`));
+    } catch (error) {
+      spinner.fail(chalk.red('Failed to load skill'));
+      console.error(error);
+    }
+  });
+
+program
   .command('health')
   .description('Check health of all skills')
   .action(async () => {
     const spinner = ora('Checking skill health...').start();
 
     try {
-      const store = new SkillStore('./skills.db');
+      const store = await SkillStore.create('./skills.db');
       const skills = store.listSkills();
       store.close();
 
-      const healthChecker = new SkillHealth();
+      const healthChecker = new HealthChecker();
       const healthChecks = await healthChecker.checkAllHealth(skills);
       const summary = healthChecker.getHealthSummary(healthChecks);
 

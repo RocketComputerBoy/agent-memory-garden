@@ -2,7 +2,7 @@ import { Skill, SkillHealth, SkillIssue } from './types';
 import { SkillDiagnose } from './skill-diagnose';
 import { SkillQuality } from './skill-quality';
 
-export class SkillHealth {
+export class HealthChecker {
   private diagnose: SkillDiagnose;
   private quality: SkillQuality;
 

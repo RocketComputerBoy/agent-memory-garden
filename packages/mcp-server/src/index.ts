@@ -4,7 +4,11 @@ import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
-import { SkillStore, SkillHealth, SkillDiagnose } from '@agent-memory-garden/core';
+import { SkillStore, HealthChecker, SkillDiagnose } from '@agent-memory-garden/core';
+
+let store: SkillStore;
+let healthChecker: HealthChecker;
+let diagnoser: SkillDiagnose;
 
 const server = new Server(
   {
@@ -17,10 +21,6 @@ const server = new Server(
     },
   }
 );
-
-const store = new SkillStore('./skills.db');
-const healthChecker = new SkillHealth();
-const diagnoser = new SkillDiagnose();
 
 server.setRequestHandler(ListToolsRequestSchema, async () => {
   return {
@@ -192,6 +192,10 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 });
 
 async function main() {
+  store = await SkillStore.create('./skills.db');
+  healthChecker = new HealthChecker();
+  diagnoser = new SkillDiagnose();
+
   const transport = new StdioServerTransport();
   await server.connect(transport);
   console.error('Agent Memory Garden MCP Server running on stdio');
