@@ -66,7 +66,7 @@ agent-memory-garden/
 ### 安装
 
 ```bash
-git clone https://github.com/your-username/agent-memory-garden.git
+git clone https://github.com/RocketComputerBoy/agent-memory-garden.git
 cd agent-memory-garden
 npm install
 ```
