@@ -1,145 +1,138 @@
 # Agent Memory Garden
 
-Make Agent skill growth visible, controllable, and shareable.
+> 让 Agent 的技能从"学会就忘"变成"持续进化"
 
-## The Problem
+## 它是什么
 
-Your Agent learned 47 skills, but 12 are outdated, 5 produce errors, 2 are going bad — and you have no idea.
+Agent Memory Garden 是一个 AI Agent 技能生命周期管理系统。它解决一个正在快速恶化的问题：
 
-## The Solution
+**你的 Agent 学了 47 个技能，但 12 个过时了，5 个会报错，2 个变坏了——而你完全不知道。**
 
-Agent Memory Garden provides:
+MCP 生态爆发式增长，公开技能中 91.8% 存在缺陷（缺依赖、无文档、已过期）。传统方案只是"注册中心"列出技能，而 Agent Memory Garden 是"质量管理系统"——评估、监控、进化。
 
-- **Skill Storage**: Organized skill management in SQLite + Markdown
-- **Quality Assessment**: 4-dimension evaluation (applicability, content quality, execution guidance, robustness)
-- **Health Monitoring**: Continuous tracking of skill health with automated diagnosis
-- **Visualization**: Interactive DAG visualization of skill relationships
-- **Version Control**: Git-native versioning with rollback capability
-- **MCP Integration**: Framework-agnostic via Model Context Protocol
+## 核心功能
 
-## Features
+| 功能 | 说明 |
+|------|------|
+| **质量评估** | 4 维度评分（适用性、内容质量、执行指导、鲁棒性） |
+| **问题诊断** | 自动检测过期、冲突、低质量、缺失依赖等问题 |
+| **健康监控** | 实时追踪技能状态（healthy / warning / critical） |
+| **自进化引擎** | 根据使用数据自动建议优化、淘汰、合并、升级 |
+| **可视化** | React Flow 交互式技能关系图，支持导出 PNG/SVG |
+| **Web UI** | 完整的管理界面（Dashboard、Skills、Health、Evolution、Visualize） |
+| **技能分享** | 支持导出/导入 Markdown 格式，生成分享链接 |
+| **MCP Server** | 可接入 Claude Code、Cursor 等 Agent 工具 |
+| **CLI 工具** | 命令行管理技能 |
 
-### Quality Assessment
+## 项目结构
 
-Evaluate skills across 4 dimensions:
-- **Applicability**: Relevance to agent's capabilities
-- **Content Quality**: Completeness and accuracy
-- **Execution Guidance**: Test coverage and error handling
-- **Robustness**: Failure scenarios and edge cases
-
-### Health Monitoring
-
-Track skill health over time with automated diagnosis and fix suggestions.
-
-### Visualization
-
-Interactive DAG visualization of skill relationships using React Flow.
-
-### Version Control
-
-Git-native versioning with snapshot, diff, and rollback capabilities.
-
-### MCP Integration
-
-Framework-agnostic skill access via Model Context Protocol.
-
-## Quick Start
-
-```bash
-# Install dependencies
-npm install
-
-# Build all packages
-npm run build
-
-# Initialize a new skill garden
-npx agmg init
-
-# Add a skill
-npx agmg add skill-name --path ./skill.md
-
-# Check skill health
-npx agmg health
-
-# Visualize skill relationships
-npx agmg visualize
+```
+agent-memory-garden/
+├── packages/
+│   ├── core/          # 核心引擎
+│   │   └── src/
+│   │       ├── types.ts           # 类型定义
+│   │       ├── skill-store.ts     # SQLite 技能存储
+│   │       ├── skill-quality.ts   # 质量评估
+│   │       ├── skill-diagnose.ts  # 问题诊断
+│   │       ├── skill-health.ts    # 健康监控
+│   │       ├── evolution-engine.ts # 自进化引擎
+│   │       └── skill-share.ts     # 技能分享
+│   ├── cli/           # 命令行工具
+│   │   └── src/index.ts
+│   ├── mcp-server/    # MCP 服务端
+│   │   └── src/index.ts
+│   └── web-ui/        # Next.js Web 界面
+│       └── src/
+│           ├── app/               # 页面路由
+│           │   ├── page.tsx       # Dashboard
+│           │   ├── skills/        # 技能管理
+│           │   ├── health/        # 健康监控
+│           │   ├── evolution/     # 进化建议
+│           │   └── visualize/     # 可视化
+│           ├── components/        # React 组件
+│           └── utils/             # 工具函数
+├── demo.js            # 演示脚本
+└── docs/              # 文档
 ```
 
-## Packages
+## 快速开始
 
-- `@agent-memory-garden/core`: Core engine with skill storage, versioning, and quality assessment
-- `@agent-memory-garden/cli`: Command-line interface for managing skill gardens
-- `@agent-memory-garden/mcp-server`: MCP server for framework-agnostic skill access
-- `@agent-memory-garden/web-ui`: Web interface for visualization and monitoring
+### 环境要求
 
-## Development
+- Node.js >= 18
+- npm >= 8
+
+### 安装
 
 ```bash
-# Install dependencies
+git clone https://github.com/your-username/agent-memory-garden.git
+cd agent-memory-garden
 npm install
+```
 
-# Start development mode
+### 运行 Demo
+
+```bash
+node demo.js
+```
+
+### 启动 Web UI
+
+```bash
+cd packages/web-ui
 npm run dev
-
-# Run tests
-npm run test
-
-# Run linter
-npm run lint
 ```
 
-## Architecture
+访问 http://localhost:3000
 
-```
-┌─────────────────────────────────────────────────────────┐
-│                     Web UI (Next.js)                    │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐    │
-│  │ Skill Garden│  │ Health      │  │ Diagnostics │    │
-│  │ Visualization│  │ Dashboard   │  │ Console     │    │
-│  └─────────────┘  └─────────────┘  └─────────────┘    │
-└─────────────────────────────────────────────────────────┘
-                           │
-                           ▼
-┌─────────────────────────────────────────────────────────┐
-│                     CLI Tool (Node.js)                  │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐    │
-│  │ skill init  │  │ skill check │  │ skill doctor│    │
-│  │ skill list  │  │ skill eval  │  │ skill prune │    │
-│  │ skill add   │  │ skill snapshot│ │ skill rollback│  │
-│  └─────────────┘  └─────────────┘  └─────────────┘    │
-└─────────────────────────────────────────────────────────┘
-                           │
-                           ▼
-┌─────────────────────────────────────────────────────────┐
-│                    MCP Server (TypeScript)              │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐    │
-│  │ list_skills │  │ get_skill   │  │ search_skills│   │
-│  │ get_health  │  │ get_dag     │  │ diagnose     │   │
-│  └─────────────┘  └─────────────┘  └─────────────┘    │
-└─────────────────────────────────────────────────────────┘
-                           │
-                           ▼
-┌─────────────────────────────────────────────────────────┐
-│                    Core Engine (TypeScript)             │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐    │
-│  │ Skill Store │  │ Version     │  │ Quality     │    │
-│  │ (SQLite +   │  │ Control     │  │ Assessment  │    │
-│  │  Markdown)  │  │ (Git)       │  │ (4-Dim)     │    │
-│  └─────────────┘  └─────────────┘  └─────────────┘    │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐    │
-│  │ Health      │  │ Diagnosis   │  │ Auto-Prune  │    │
-│  │ Tracker     │  │ Engine      │  │ Engine      │    │
-│  └─────────────┘  └─────────────┘  └─────────────┘    │
-└─────────────────────────────────────────────────────────┘
+### 运行测试
+
+```bash
+cd packages/core
+npm test
 ```
 
-## Documentation
+## 技术栈
 
-- [Getting Started](docs/getting-started.md)
-- [Architecture](docs/architecture.md)
-- [API Reference](docs/api-reference.md)
-- [Contributing](docs/contributing.md)
+| 层级 | 技术 |
+|------|------|
+| 存储 | sql.js（纯 JS SQLite） |
+| 后端 | TypeScript, Node.js |
+| 前端 | Next.js 14, React 18 |
+| 可视化 | React Flow, dagre |
+| 集成 | MCP SDK |
+| 测试 | Jest |
 
-## License
+## 质量评估维度
 
-MIT
+| 维度 | 评估内容 |
+|------|----------|
+| **适用性** | 描述完整性、标签、内容长度、依赖声明 |
+| **内容质量** | 文档结构、代码示例、错误处理说明 |
+| **执行指导** | 安装说明、使用方法、测试用例、示例 |
+| **鲁棒性** | 错误处理、异常捕获、超时机制、重试逻辑 |
+
+## 进化策略
+
+| 策略 | 触发条件 |
+|------|----------|
+| **淘汰** | 健康分 < 30%，使用次数 < 5 |
+| **优化** | 存在高优先级问题 |
+| **降级** | 质量低且使用少 |
+| **合并** | 与高质量技能功能重复 |
+| **升级** | 高质量且高使用率 |
+
+## 贡献
+
+欢迎贡献！请查看 [CONTRIBUTING.md](CONTRIBUTING.md) 了解详情。
+
+## 许可证
+
+MIT License
+
+---
+
+<p align="center">
+  <i>"AI Agent 越来越多，技能越来越杂，总得有人管质量。"</i>
+</p>

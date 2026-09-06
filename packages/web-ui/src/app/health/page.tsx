@@ -1,9 +1,18 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 
-const mockHealthData = [
+interface HealthData {
+  id: string;
+  name: string;
+  status: 'healthy' | 'warning' | 'critical';
+  score: number;
+  issues: string[];
+  lastChecked: string;
+}
+
+const initialHealthData: HealthData[] = [
   { id: '1', name: 'web-search', status: 'healthy', score: 0.85, issues: [], lastChecked: '2 minutes ago' },
   { id: '2', name: 'code-analysis', status: 'healthy', score: 0.78, issues: [], lastChecked: '2 minutes ago' },
   { id: '3', name: 'report-generation', status: 'warning', score: 0.55, issues: ['Low content quality'], lastChecked: '2 minutes ago' },
@@ -12,15 +21,61 @@ const mockHealthData = [
   { id: '6', name: 'old-api', status: 'critical', score: 0.15, issues: ['Deprecated content', 'Empty dependency', 'Low quality'], lastChecked: '2 minutes ago' },
 ];
 
-const summary = {
-  total: 6,
-  healthy: 3,
-  warning: 2,
-  critical: 1,
-  avgScore: 0.6,
-};
-
 export default function HealthPage() {
+  const [healthData, setHealthData] = useState(initialHealthData);
+  const [isChecking, setIsChecking] = useState(false);
+
+  const summary = {
+    total: healthData.length,
+    healthy: healthData.filter(h => h.status === 'healthy').length,
+    warning: healthData.filter(h => h.status === 'warning').length,
+    critical: healthData.filter(h => h.status === 'critical').length,
+    avgScore: healthData.reduce((acc, h) => acc + h.score, 0) / healthData.length,
+  };
+
+  const runHealthCheck = () => {
+    setIsChecking(true);
+    
+    // Simulate health check with random variations
+    setTimeout(() => {
+      const updated = healthData.map(skill => {
+        // Simulate score fluctuation
+        const scoreChange = (Math.random() - 0.5) * 0.1;
+        let newScore = Math.max(0, Math.min(1, skill.score + scoreChange));
+        
+        // Determine new status based on score
+        let newStatus: 'healthy' | 'warning' | 'critical' = 'healthy';
+        if (newScore < 0.3) newStatus = 'critical';
+        else if (newScore < 0.6) newStatus = 'warning';
+        
+        // Simulate issue detection
+        const possibleIssues = [
+          'Low content quality',
+          'Missing examples',
+          'No error handling',
+          'Outdated dependencies',
+          'Insufficient documentation',
+        ];
+        
+        const newIssues: string[] = [];
+        if (newScore < 0.5 && Math.random() > 0.5) {
+          newIssues.push(possibleIssues[Math.floor(Math.random() * possibleIssues.length)]);
+        }
+        
+        return {
+          ...skill,
+          score: newScore,
+          status: newStatus,
+          issues: newIssues,
+          lastChecked: 'Just now',
+        };
+      });
+      
+      setHealthData(updated);
+      setIsChecking(false);
+    }, 1500);
+  };
+
   return (
     <div>
       <nav className="nav">
@@ -62,7 +117,13 @@ export default function HealthPage() {
         <div className="card">
           <div className="card-header">
             <h2 className="card-title">Skill Health Status</h2>
-            <button className="btn btn-primary">Run Health Check</button>
+            <button 
+              className="btn btn-primary" 
+              onClick={runHealthCheck}
+              disabled={isChecking}
+            >
+              {isChecking ? 'Checking...' : 'Run Health Check'}
+            </button>
           </div>
 
           <table className="table">
@@ -76,7 +137,7 @@ export default function HealthPage() {
               </tr>
             </thead>
             <tbody>
-              {mockHealthData.map(skill => (
+              {healthData.map(skill => (
                 <tr key={skill.id}>
                   <td><strong>{skill.name}</strong></td>
                   <td>
