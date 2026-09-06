@@ -14,13 +14,13 @@ MCP 生态爆发式增长，公开技能中 91.8% 存在缺陷（缺依赖、无
 
 | 功能 | 说明 |
 |------|------|
-| **质量评估** | 4 维度评分（适用性、内容质量、执行指导、鲁棒性） |
+| **LLM 质量评估** | 使用 GPT-4 智能分析技能内容，4 维度评分 |
 | **问题诊断** | 自动检测过期、冲突、低质量、缺失依赖等问题 |
 | **健康监控** | 实时追踪技能状态（healthy / warning / critical） |
 | **自进化引擎** | 根据使用数据自动建议优化、淘汰、合并、升级 |
+| **GitHub 扫描** | 扫描 GitHub 上的 MCP 技能仓库，输出质量报告 |
 | **可视化** | React Flow 交互式技能关系图，支持导出 PNG/SVG |
 | **Web UI** | 完整的管理界面（Dashboard、Skills、Health、Evolution、Visualize） |
-| **技能分享** | 支持导出/导入 Markdown 格式，生成分享链接 |
 | **MCP Server** | 可接入 Claude Code、Cursor 等 Agent 工具 |
 | **CLI 工具** | 命令行管理技能 |
 
@@ -33,26 +33,19 @@ agent-memory-garden/
 │   │   └── src/
 │   │       ├── types.ts           # 类型定义
 │   │       ├── skill-store.ts     # SQLite 技能存储
-│   │       ├── skill-quality.ts   # 质量评估
+│   │       ├── skill-quality.ts   # 关键词评估（基础版）
+│   │       ├── llm-quality.ts     # LLM 智能评估
 │   │       ├── skill-diagnose.ts  # 问题诊断
 │   │       ├── skill-health.ts    # 健康监控
 │   │       ├── evolution-engine.ts # 自进化引擎
-│   │       └── skill-share.ts     # 技能分享
+│   │       ├── skill-share.ts     # 技能分享
+│   │       ├── github-scanner.ts  # GitHub 扫描
+│   │       └── quality-reporter.ts # 质量报告生成
 │   ├── cli/           # 命令行工具
-│   │   └── src/index.ts
 │   ├── mcp-server/    # MCP 服务端
-│   │   └── src/index.ts
 │   └── web-ui/        # Next.js Web 界面
-│       └── src/
-│           ├── app/               # 页面路由
-│           │   ├── page.tsx       # Dashboard
-│           │   ├── skills/        # 技能管理
-│           │   ├── health/        # 健康监控
-│           │   ├── evolution/     # 进化建议
-│           │   └── visualize/     # 可视化
-│           ├── components/        # React 组件
-│           └── utils/             # 工具函数
-├── demo.js            # 演示脚本
+├── demo.js            # 基础演示
+├── demo-report.js     # 质量报告演示
 └── docs/              # 文档
 ```
 
@@ -77,6 +70,13 @@ npm install
 node demo.js
 ```
 
+### 生成质量报告
+
+```bash
+export OPENAI_API_KEY="your-api-key"
+node demo-report.js
+```
+
 ### 启动 Web UI
 
 ```bash
@@ -93,6 +93,52 @@ cd packages/core
 npm test
 ```
 
+## 质量评估
+
+### 关键词评估（基础版）
+
+无需 API Key，基于规则的快速评估：
+
+| 维度 | 评估内容 |
+|------|----------|
+| **适用性** | 描述完整性、标签、内容长度、依赖声明 |
+| **内容质量** | 文档结构、代码示例、错误处理说明 |
+| **执行指导** | 安装说明、使用方法、测试用例、示例 |
+| **鲁棒性** | 错误处理、异常捕获、超时机制、重试逻辑 |
+
+### LLM 智能评估（推荐）
+
+使用 LLM 真正理解技能内容：
+
+```bash
+export OPENAI_API_KEY="your-api-key"
+node demo-report.js
+```
+
+支持所有 OpenAI 兼容接口，通过 `baseUrl` 配置：
+
+```typescript
+const assessor = new LLMQualityAssessor({
+  apiKey: 'your-api-key',
+  baseUrl: 'https://api.deepseek.com/v1',  // DeepSeek
+  model: 'deepseek-chat',
+});
+```
+
+| 提供商 | baseUrl | 模型示例 |
+|--------|---------|----------|
+| OpenAI | `https://api.openai.com/v1` | `gpt-4o-mini` |
+| DeepSeek | `https://api.deepseek.com/v1` | `deepseek-chat` |
+| Moonshot | `https://api.moonshot.cn/v1` | `moonshot-v1-8k` |
+| 通义千问 | `https://dashscope.aliyuncs.com/compatible-mode/v1` | `qwen-turbo` |
+| Ollama (本地) | `http://localhost:11434/v1` | `llama3` |
+
+## MCP 集成
+
+支持与 Claude Code、Cursor 等 AI Agent 工具集成。
+
+详细配置请查看 [MCP-SETUP.md](docs/MCP-SETUP.md)
+
 ## 技术栈
 
 | 层级 | 技术 |
@@ -101,17 +147,9 @@ npm test
 | 后端 | TypeScript, Node.js |
 | 前端 | Next.js 14, React 18 |
 | 可视化 | React Flow, dagre |
+| AI | OpenAI GPT-4 |
 | 集成 | MCP SDK |
 | 测试 | Jest |
-
-## 质量评估维度
-
-| 维度 | 评估内容 |
-|------|----------|
-| **适用性** | 描述完整性、标签、内容长度、依赖声明 |
-| **内容质量** | 文档结构、代码示例、错误处理说明 |
-| **执行指导** | 安装说明、使用方法、测试用例、示例 |
-| **鲁棒性** | 错误处理、异常捕获、超时机制、重试逻辑 |
 
 ## 进化策略
 

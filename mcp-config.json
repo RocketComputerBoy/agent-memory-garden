@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "agent-memory-garden": {
+      "command": "node",
+      "args": ["packages/mcp-server/dist/index.js"],
+      "env": {
+        "OPENAI_API_KEY": "${OPENAI_API_KEY}"
+      }
+    }
+  }
+}
