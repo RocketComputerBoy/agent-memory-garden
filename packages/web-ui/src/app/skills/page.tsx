@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 
 interface Skill {
@@ -84,8 +84,44 @@ export default function SkillsPage() {
   const [viewingSkill, setViewingSkill] = useState<Skill | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [newSkill, setNewSkill] = useState({ name: '', description: '', version: '1.0.0', tags: '' });
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortField, setSortField] = useState<'name' | 'score' | 'usageCount' | 'updatedAt'>('name');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
 
-  const filteredSkills = filter === 'all' ? skills : skills.filter(s => s.status === filter);
+  const searchQueryLower = useMemo(() => searchQuery.toLowerCase(), [searchQuery]);
+
+  const filteredSkills = useMemo(() => skills
+    .filter(s => filter === 'all' || s.status === filter)
+    .filter(s => 
+      s.name.toLowerCase().includes(searchQueryLower) ||
+      s.description.toLowerCase().includes(searchQueryLower) ||
+      s.tags.some(t => t.toLowerCase().includes(searchQueryLower))
+    )
+    .sort((a, b) => {
+      const multiplier = sortDirection === 'asc' ? 1 : -1;
+      if (sortField === 'name') return multiplier * a.name.localeCompare(b.name);
+      if (sortField === 'score') return multiplier * (a.score - b.score);
+      if (sortField === 'usageCount') return multiplier * (a.usageCount - b.usageCount);
+      return multiplier * a.updatedAt.localeCompare(b.updatedAt);
+    }), [skills, filter, searchQueryLower, sortField, sortDirection]);
+
+  const totalPages = Math.ceil(filteredSkills.length / itemsPerPage);
+  
+  const paginatedSkills = useMemo(() => 
+    filteredSkills.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage),
+    [filteredSkills, currentPage, itemsPerPage]
+  );
+
+  const handleSort = (field: typeof sortField) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
 
   const handleDelete = (id: string) => {
     if (confirm('Are you sure you want to delete this skill?')) {
@@ -151,28 +187,35 @@ export default function SkillsPage() {
 
         <div className="card">
           <div className="card-header">
-            <div style={{ display: 'flex', gap: '8px' }}>
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              <input
+                type="text"
+                placeholder="Search skills..."
+                value={searchQuery}
+                onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
+                style={{ padding: '8px 12px', border: '1px solid #ddd', borderRadius: '4px', minWidth: '200px' }}
+              />
               <button 
                 className={`btn ${filter === 'all' ? 'btn-primary' : 'btn-secondary'}`}
-                onClick={() => setFilter('all')}
+                onClick={() => { setFilter('all'); setCurrentPage(1); }}
               >
                 All ({skills.length})
               </button>
               <button 
                 className={`btn ${filter === 'healthy' ? 'btn-primary' : 'btn-secondary'}`}
-                onClick={() => setFilter('healthy')}
+                onClick={() => { setFilter('healthy'); setCurrentPage(1); }}
               >
                 Healthy ({skills.filter(s => s.status === 'healthy').length})
               </button>
               <button 
                 className={`btn ${filter === 'warning' ? 'btn-primary' : 'btn-secondary'}`}
-                onClick={() => setFilter('warning')}
+                onClick={() => { setFilter('warning'); setCurrentPage(1); }}
               >
                 Warning ({skills.filter(s => s.status === 'warning').length})
               </button>
               <button 
                 className={`btn ${filter === 'critical' ? 'btn-primary' : 'btn-secondary'}`}
-                onClick={() => setFilter('critical')}
+                onClick={() => { setFilter('critical'); setCurrentPage(1); }}
               >
                 Critical ({skills.filter(s => s.status === 'critical').length})
               </button>
@@ -183,17 +226,24 @@ export default function SkillsPage() {
           <table className="table">
             <thead>
               <tr>
-                <th>Name</th>
+                <th style={{ cursor: 'pointer' }} onClick={() => handleSort('name')}>
+                  Name {sortField === 'name' && (sortDirection === 'asc' ? '↑' : '↓')}
+                </th>
                 <th>Description</th>
                 <th>Version</th>
                 <th>Status</th>
-                <th>Score</th>
+                <th style={{ cursor: 'pointer' }} onClick={() => handleSort('score')}>
+                  Score {sortField === 'score' && (sortDirection === 'asc' ? '↑' : '↓')}
+                </th>
                 <th>Tags</th>
+                <th style={{ cursor: 'pointer' }} onClick={() => handleSort('usageCount')}>
+                  Usage {sortField === 'usageCount' && (sortDirection === 'asc' ? '↑' : '↓')}
+                </th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {filteredSkills.map(skill => (
+              {paginatedSkills.map(skill => (
                 <tr key={skill.id}>
                   <td><strong>{skill.name}</strong></td>
                   <td>{skill.description}</td>
@@ -205,6 +255,7 @@ export default function SkillsPage() {
                   </td>
                   <td>{(skill.score * 100).toFixed(0)}%</td>
                   <td>{skill.tags.join(', ')}</td>
+                  <td>{skill.usageCount}</td>
                   <td>
                     <button className="btn btn-secondary" style={{ marginRight: '4px' }} onClick={() => setViewingSkill(skill)}>View</button>
                     <button className="btn btn-secondary" style={{ marginRight: '4px' }} onClick={() => handleEdit(skill)}>Edit</button>
@@ -214,6 +265,28 @@ export default function SkillsPage() {
               ))}
             </tbody>
           </table>
+
+          {totalPages > 1 && (
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', padding: '16px' }}>
+              <button 
+                className="btn btn-secondary" 
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+              >
+                Previous
+              </button>
+              <span style={{ padding: '8px 16px', color: '#666' }}>
+                Page {currentPage} of {totalPages}
+              </span>
+              <button 
+                className="btn btn-secondary" 
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+              >
+                Next
+              </button>
+            </div>
+          )}
         </div>
       </div>
 

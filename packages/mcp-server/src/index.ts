@@ -106,13 +106,14 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     }
 
     case 'get_skill': {
-      const skill = store.getSkill(args.skillId as string);
+      const skillId = args?.skillId as string;
+      const skill = store.getSkill(skillId);
       if (!skill) {
         return {
           content: [
             {
               type: 'text',
-              text: `Skill not found: ${args.skillId}`,
+              text: `Skill not found: ${skillId}`,
             },
           ],
           isError: true,
@@ -129,7 +130,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     }
 
     case 'search_skills': {
-      const skills = store.searchSkills(args.query as string);
+      const query = args?.query as string;
+      const skills = store.searchSkills(query);
       return {
         content: [
           {
@@ -155,13 +157,14 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     }
 
     case 'diagnose_skill': {
-      const skill = store.getSkill(args.skillId as string);
+      const skillId = args?.skillId as string;
+      const skill = store.getSkill(skillId);
       if (!skill) {
         return {
           content: [
             {
               type: 'text',
-              text: `Skill not found: ${args.skillId}`,
+              text: `Skill not found: ${skillId}`,
             },
           ],
           isError: true,
