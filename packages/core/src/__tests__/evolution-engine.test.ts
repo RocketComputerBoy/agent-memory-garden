@@ -1,4 +1,4 @@
-import { EvolutionEngine, EvolutionAction } from '../evolution-engine';
+import { EvolutionEngine } from '../evolution-engine';
 import { Skill, SkillHealth } from '../types';
 
 describe('EvolutionEngine', () => {

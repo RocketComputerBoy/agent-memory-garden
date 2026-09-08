@@ -188,6 +188,15 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           required: ['skillId'],
         },
       },
+      {
+        name: 'get_skill_count',
+        description: 'Get the total number of skills and count by tag',
+        inputSchema: {
+          type: 'object',
+          properties: {},
+          required: [],
+        },
+      },
     ],
   };
 });
@@ -528,6 +537,17 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       };
     }
 
+    case 'get_skill_count': {
+      const count = store.getSkillCount();
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify(count, null, 2)
+          }
+        ]
+      }
+    }
     default:
       return {
         content: [

@@ -1,4 +1,4 @@
-import { Skill, SkillHealth, SkillIssue } from './types';
+import { Skill, SkillHealth } from './types';
 
 export interface SkillUsage {
   skillId: string;
@@ -52,7 +52,6 @@ export class EvolutionEngine {
     for (const skill of skills) {
       const health = healthChecks.find((h) => h.skillId === skill.id);
       const usage = this.usageStats.get(skill.id);
-      const feedback = this.feedbackScores.get(skill.id);
 
       // 1. 自动退休：健康度低且使用率低
       if (health && health.status === 'critical') {

@@ -1,5 +1,3 @@
-import { Skill } from './types';
-
 export interface GitHubSkill {
   name: string;
   path: string;

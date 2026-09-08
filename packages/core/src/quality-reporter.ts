@@ -23,12 +23,10 @@ interface ReportSummary {
 export class QualityReporter {
   private scanner: GitHubScanner;
   private assessor: LLMQualityAssessor;
-  private config: LLMQualityConfig;
 
   constructor(config: LLMQualityConfig = {}) {
     this.scanner = new GitHubScanner();
     this.assessor = new LLMQualityAssessor(config);
-    this.config = config;
   }
 
   async generateReport(

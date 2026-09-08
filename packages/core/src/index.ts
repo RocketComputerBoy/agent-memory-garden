@@ -1,5 +1,4 @@
-export { SkillStore } from './skill-store';
-export { GitVersionControl } from './skill-version';
+export { SkillStore, ArchivedSkill } from './skill-store';
 export { SkillQuality } from './skill-quality';
 export { LLMQualityAssessor, LLMQualityConfig } from './llm-quality';
 export { SkillDiagnose } from './skill-diagnose';

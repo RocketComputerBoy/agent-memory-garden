@@ -141,4 +141,60 @@ describe('SkillStore', () => {
     expect(markdown).toContain('**Dependencies:** dep1');
     expect(markdown).toContain('Export content');
   });
+
+  it('should return zero count for empty store', () => {
+    const count = store.getSkillCount();
+    expect(count.total).toBe(0);
+    expect(count.byTag).toEqual({});
+  });
+
+  it('should count skills correctly', () => {
+    store.createSkill({
+      name: 'skill-1',
+      description: '',
+      content: '',
+      path: '',
+      version: '1.0.0',
+      tags: ['web', 'search'],
+      dependencies: [],
+    });
+    store.createSkill({
+      name: 'skill-2',
+      description: '',
+      content: '',
+      path: '',
+      version: '1.0.0',
+      tags: ['web'],
+      dependencies: [],
+    });
+    store.createSkill({
+      name: 'skill-3',
+      description: '',
+      content: '',
+      path: '',
+      version: '1.0.0',
+      tags: ['test'],
+      dependencies: [],
+    });
+
+    const count = store.getSkillCount();
+    expect(count.total).toBe(3);
+    expect(count.byTag).toEqual({ web: 2, search: 1, test: 1 });
+  });
+
+  it('should count skills with empty tags', () => {
+    store.createSkill({
+      name: 'no-tags',
+      description: '',
+      content: '',
+      path: '',
+      version: '1.0.0',
+      tags: [],
+      dependencies: [],
+    });
+
+    const count = store.getSkillCount();
+    expect(count.total).toBe(1);
+    expect(count.byTag).toEqual({});
+  });
 });

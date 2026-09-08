@@ -2,7 +2,7 @@ import initSqlJs, { Database as SqlJsDatabase } from 'sql.js';
 import { v4 as uuidv4 } from 'uuid';
 import * as fs from 'fs';
 import * as path from 'path';
-import { Skill, GardenConfig } from './types';
+import { Skill } from './types';
 
 interface SkillCacheEntry {
   id: string;
@@ -12,6 +12,17 @@ interface SkillCacheEntry {
   version: string;
   createdAt: Date;
   updatedAt: Date;
+  tags: string[];
+  dependencies: string[];
+}
+
+export interface ArchivedSkill {
+  id: string;
+  name: string;
+  description: string;
+  version: string;
+  archivedAt: Date;
+  archiveReason: string;
   tags: string[];
   dependencies: string[];
 }
@@ -107,8 +118,8 @@ export class SkillStore {
     
     const columns = result[0].columns;
     for (const row of result[0].values) {
-      const obj: any = {};
-      columns.forEach((col, i) => (obj[col] = row[i]));
+      const obj: Record<string, string> = {};
+      columns.forEach((col, i) => (obj[col] = row[i] as string));
       
       const entry: SkillCacheEntry = {
         id: obj.id,
@@ -442,14 +453,14 @@ export class SkillStore {
     return true;
   }
 
-  getArchivedSkills(): any[] {
+  getArchivedSkills(): ArchivedSkill[] {
     const result = this.db.exec('SELECT * FROM archived_skills');
     if (result.length === 0) return [];
     
     const columns = result[0].columns;
     return result[0].values.map((row) => {
-      const obj: any = {};
-      columns.forEach((col, i) => (obj[col] = row[i]));
+      const obj: Record<string, string> = {};
+      columns.forEach((col, i) => (obj[col] = row[i] as string));
       return {
         id: obj.id,
         name: obj.name,
@@ -527,6 +538,19 @@ export class SkillStore {
     };
   }
 
+  getSkillCount(): { total: number; byTag: Record<string, number> } {
+    let total = 0;
+    const byTag: Record<string, number> = {};
+
+    for (const entry of this.cache.values()) {
+      total++;
+      for (const tag of entry.tags) {
+        byTag[tag] = (byTag[tag] || 0) + 1;
+      }
+    }
+    return { total, byTag };
+  }
+  
   exportToMarkdown(skill: Skill): string {
     const lines = [
       `# ${skill.name}`,
